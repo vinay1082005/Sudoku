@@ -1,29 +1,21 @@
 import java.awt.*;
+import java.util.Random;
 import javax.swing.*;
 
 public class SudokuGUI extends JFrame {
     private JTextField[][] cells = new JTextField[9][9];
 
-    private int[][] board = {
-        {5, 3, 0, 0, 7, 0, 0, 0, 0},
-        {6, 0, 0, 1, 9, 5, 0, 0, 0},
-        {0, 9, 8, 0, 0, 0, 0, 6, 0},
-        {8, 0, 0, 0, 6, 0, 0, 0, 3},
-        {4, 0, 0, 8, 0, 3, 0, 0, 1},
-        {7, 0, 0, 0, 2, 0, 0, 0, 6},
-        {0, 6, 0, 0, 0, 0, 2, 8, 0},
-        {0, 0, 0, 4, 1, 9, 0, 0, 5},
-        {0, 0, 0, 0, 8, 0, 0, 7, 9}
-    };
+    private int[][] board = new int[9][9];
 
     public SudokuGUI() {
+        generatePuzzle();
+
         setTitle("Sudoku Game");
         setSize(500, 500);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLayout(new BorderLayout());
 
         JPanel gridPanel = new JPanel(new GridLayout(9, 9));
-
         Font font = new Font("Arial", Font.BOLD, 20);
 
         for (int i = 0; i < 9; i++) {
@@ -46,8 +38,11 @@ public class SudokuGUI extends JFrame {
         JButton solveButton = new JButton("Solve");
         solveButton.addActionListener(e -> solve());
 
-        JButton resetButton = new JButton("Reset");
-        resetButton.addActionListener(e -> reset());
+        JButton resetButton = new JButton("New Game");
+        resetButton.addActionListener(e -> {
+            dispose();
+            new SudokuGUI().setVisible(true);
+        });
 
         JPanel buttonPanel = new JPanel();
         buttonPanel.add(solveButton);
@@ -57,6 +52,30 @@ public class SudokuGUI extends JFrame {
         add(buttonPanel, BorderLayout.SOUTH);
     }
 
+    // 🔥 Generate Random Sudoku Puzzle
+    private void generatePuzzle() {
+        int[][] fullBoard = new int[9][9];
+        solveSudoku(fullBoard);
+
+        Random rand = new Random();
+
+        // Copy full board
+        for (int i = 0; i < 9; i++)
+            System.arraycopy(fullBoard[i], 0, board[i], 0, 9);
+
+        // Remove numbers randomly
+        int cellsToRemove = 40; // difficulty control
+        while (cellsToRemove > 0) {
+            int r = rand.nextInt(9);
+            int c = rand.nextInt(9);
+
+            if (board[r][c] != 0) {
+                board[r][c] = 0;
+                cellsToRemove--;
+            }
+        }
+    }
+
     private void solve() {
         int[][] tempBoard = getBoardFromUI();
         if (solveSudoku(tempBoard)) {
@@ -64,11 +83,6 @@ public class SudokuGUI extends JFrame {
         } else {
             JOptionPane.showMessageDialog(this, "No solution exists!");
         }
-    }
-
-    private void reset() {
-        dispose();
-        new SudokuGUI().setVisible(true);
     }
 
     private int[][] getBoardFromUI() {
